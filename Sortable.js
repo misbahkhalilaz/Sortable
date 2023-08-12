@@ -979,9 +979,9 @@
         on(ownerDocument, "dragover", nearestEmptyInsertDetectEvent);
         on(ownerDocument, "mousemove", nearestEmptyInsertDetectEvent);
         on(ownerDocument, "touchmove", nearestEmptyInsertDetectEvent);
-        on(ownerDocument, "mouseup", _this._onDrop);
-        on(ownerDocument, "touchend", _this._onDrop);
-        on(ownerDocument, "touchcancel", _this._onDrop);
+        on(ownerDocument, "mouseup", _this._onDrop.bind(_this));
+        on(ownerDocument, "touchend", _this._onDrop.bind(_this));
+        on(ownerDocument, "touchcancel", _this._onDrop.bind(_this));
 
         // Make dragEl draggable (must be before delay for FireFox)
         if (FireFox && this.nativeDraggable) {
@@ -1037,11 +1037,11 @@
       touch = touch || evt.pointerType == "touch" && evt;
       if (!this.nativeDraggable || touch) {
         if (_this.options.supportPointer) {
-          on(document, "pointermove", _this._onTouchMove);
+          on(document, "pointermove", _this._onTouchMove.bind(_this));
         } else if (touch) {
-          on(document, "touchmove", _this._onTouchMove);
+          on(document, "touchmove", _this._onTouchMove.bind(_this));
         } else {
-          on(document, "mousemove", _this._onTouchMove);
+          on(document, "mousemove", _this._onTouchMove.bind(_this));
         }
       } else {
         on(dragEl, "dragend", _this);
@@ -1076,10 +1076,9 @@
       }
     }
     _emulateDragOver() {
-      let _this = Sortable.get(this);
       if (touchEvt) {
-        _this._lastX = touchEvt.clientX;
-        _this._lastY = touchEvt.clientY;
+        this._lastX = touchEvt.clientX;
+        this._lastY = touchEvt.clientY;
         _hideGhostForTarget();
         let target = document.elementFromPoint(touchEvt.clientX, touchEvt.clientY);
         let parent = target;
@@ -1099,7 +1098,7 @@
                 target: target,
                 rootEl: parent
               });
-              if (inserted && !_this.options.dragoverBubble) {
+              if (inserted && !this.options.dragoverBubble) {
                 break;
               }
             }
@@ -1157,13 +1156,12 @@
       }
     }
     _appendGhost() {
-      let _this = Sortable.get(this);
       // Bug if using scale(): https://stackoverflow.com/questions/2637058
       // Not being adjusted for
       if (!ghostEl) {
-        let container = _this.options.fallbackOnBody ? document.body : rootEl,
+        let container = this.options.fallbackOnBody ? document.body : rootEl,
           rect = getRect(dragEl, true, PositionGhostAbsolutely, true, container),
-          options = _this.options;
+          options = this.options;
 
         // Position absolutely
         if (PositionGhostAbsolutely) {
@@ -1205,11 +1203,10 @@
       }
     }
     _onDragStart( /**Event*/evt, /**boolean*/fallback) {
-      let _this = Sortable.get(this);
       let dataTransfer = evt.dataTransfer;
-      let options = _this.options;
+      let options = this.options;
       if (Sortable.eventCanceled) {
-        _this._onDrop();
+        this._onDrop();
         return;
       }
       if (!Sortable.eventCanceled) {
@@ -1217,42 +1214,43 @@
         cloneEl.removeAttribute("id");
         cloneEl.draggable = false;
         cloneEl.style["will-change"] = "";
-        _this._hideClone();
-        toggleClass(cloneEl, _this.options.chosenClass, false);
+        this._hideClone();
+        toggleClass(cloneEl, this.options.chosenClass, false);
         Sortable.clone = cloneEl;
       }
 
       // #1143: IFrame support workaround
-      _this.cloneId = _nextTick(function () {
+      const nextTickCB = () => {
         if (Sortable.eventCanceled) return;
-        if (!_this.options.removeCloneOnHide) {
+        if (!this.options.removeCloneOnHide) {
           rootEl.insertBefore(cloneEl, dragEl);
         }
-        _this._hideClone();
-      });
+        this._hideClone();
+      };
+      this.cloneId = _nextTick(nextTickCB);
       !fallback && toggleClass(dragEl, options.dragClass, true);
 
       // Set proper drop events
       if (fallback) {
         ignoreNextClick = true;
-        _this._loopId = setInterval(_this._emulateDragOver, 50);
+        this._loopId = setInterval(this._emulateDragOver.bind(this), 50);
       } else {
         // Undo what was set in _prepareDragStart before drag started
-        off(document, "mouseup", _this._onDrop);
-        off(document, "touchend", _this._onDrop);
-        off(document, "touchcancel", _this._onDrop);
+        off(document, "mouseup", this._onDrop.bind(this));
+        off(document, "touchend", this._onDrop.bind(this));
+        off(document, "touchcancel", this._onDrop.bind(this));
         if (dataTransfer) {
           dataTransfer.effectAllowed = "move";
-          options.setData && options.setData.call(_this, dataTransfer, dragEl);
+          options.setData && options.setData.call(this, dataTransfer, dragEl);
         }
-        on(document, "drop", _this);
+        on(document, "drop", this);
 
         // #1276 fix:
         css(dragEl, "transform", "translateZ(0)");
       }
       awaitingDragStarted = true;
-      _this._dragStartId = _nextTick(_this._dragStarted.bind(_this, fallback, evt));
-      on(document, "selectstart", _this);
+      this._dragStartId = _nextTick(this._dragStarted.bind(this, fallback, evt));
+      on(document, "selectstart", this);
       moved = true;
       if (Safari) {
         css(document.body, "user-select", "none");
@@ -1479,19 +1477,19 @@
       return false;
     }
     _offMoveEvents() {
-      off(document, "mousemove", this._onTouchMove);
-      off(document, "touchmove", this._onTouchMove);
-      off(document, "pointermove", this._onTouchMove);
+      off(document, "mousemove", this._onTouchMove.bind(this));
+      off(document, "touchmove", this._onTouchMove.bind(this));
+      off(document, "pointermove", this._onTouchMove.bind(this));
       off(document, "dragover", nearestEmptyInsertDetectEvent);
       off(document, "mousemove", nearestEmptyInsertDetectEvent);
       off(document, "touchmove", nearestEmptyInsertDetectEvent);
     }
     _offUpEvents() {
       let ownerDocument = this.el.ownerDocument;
-      off(ownerDocument, "mouseup", this._onDrop);
-      off(ownerDocument, "touchend", this._onDrop);
-      off(ownerDocument, "pointerup", this._onDrop);
-      off(ownerDocument, "touchcancel", this._onDrop);
+      off(ownerDocument, "mouseup", this._onDrop.bind(this));
+      off(ownerDocument, "touchend", this._onDrop.bind(this));
+      off(ownerDocument, "pointerup", this._onDrop.bind(this));
+      off(ownerDocument, "touchcancel", this._onDrop.bind(this));
       off(document, "selectstart", this);
     }
     _onDrop( /**Event*/evt) {

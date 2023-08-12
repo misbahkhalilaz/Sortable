@@ -670,20 +670,19 @@ class Sortable {
 	}
 
 	_triggerDragStart(/** Event */ evt, /** Touch */ touch) {
-		let _this = Sortable.get(this.el);
 		touch = touch || (evt.pointerType == "touch" && evt);
 
 		if (!this.nativeDraggable || touch) {
-			if (_this.options.supportPointer) {
-				on(document, "pointermove", _this._onTouchMove.bind(_this));
+			if (this.options.supportPointer) {
+				on(document, "pointermove", this._onTouchMove.bind(this));
 			} else if (touch) {
-				on(document, "touchmove", _this._onTouchMove.bind(_this));
+				on(document, "touchmove", this._onTouchMove.bind(this));
 			} else {
-				on(document, "mousemove", _this._onTouchMove.bind(_this));
+				on(document, "mousemove", this._onTouchMove.bind(this));
 			}
 		} else {
-			on(dragEl, "dragend", _this);
-			on(rootEl, "dragstart", _this._onDragStart.bind(_this));
+			on(dragEl, "dragend", this);
+			on(rootEl, "dragstart", this._onDragStart.bind(this));
 		}
 
 		try {
@@ -807,7 +806,7 @@ class Sortable {
 				) {
 					return;
 				}
-				this._onDragStart(evt, true).bind(this);
+				this._onDragStart(evt, true);
 			}
 
 			if (ghostEl) {

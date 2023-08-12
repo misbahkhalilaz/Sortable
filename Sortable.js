@@ -1045,7 +1045,7 @@
         }
       } else {
         on(dragEl, "dragend", _this);
-        on(rootEl, "dragstart", _this._onDragStart);
+        on(rootEl, "dragstart", _this._onDragStart.bind(_this));
       }
       try {
         if (document.selection) {
@@ -1127,7 +1127,7 @@
           if (fallbackTolerance && Math.max(Math.abs(touch.clientX - this._lastX), Math.abs(touch.clientY - this._lastY)) < fallbackTolerance) {
             return;
           }
-          this._onDragStart(evt, true);
+          this._onDragStart(evt, true).bind(this);
         }
         if (ghostEl) {
           if (ghostMatrix) {
@@ -1519,7 +1519,7 @@
       // Unbind events
       if (this.nativeDraggable) {
         off(document, "drop", this);
-        off(el, "dragstart", this._onDragStart);
+        off(el, "dragstart", this._onDragStart.bind(this));
       }
       this._offMoveEvents();
       this._offUpEvents();

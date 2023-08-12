@@ -683,7 +683,7 @@ class Sortable {
 			}
 		} else {
 			on(dragEl, "dragend", _this);
-			on(rootEl, "dragstart", _this._onDragStart);
+			on(rootEl, "dragstart", _this._onDragStart.bind(_this));
 		}
 
 		try {
@@ -807,7 +807,7 @@ class Sortable {
 				) {
 					return;
 				}
-				this._onDragStart(evt, true);
+				this._onDragStart(evt, true).bind(this);
 			}
 
 			if (ghostEl) {
@@ -1384,7 +1384,7 @@ class Sortable {
 		// Unbind events
 		if (this.nativeDraggable) {
 			off(document, "drop", this);
-			off(el, "dragstart", this._onDragStart);
+			off(el, "dragstart", this._onDragStart.bind(this));
 		}
 		this._offMoveEvents();
 		this._offUpEvents();

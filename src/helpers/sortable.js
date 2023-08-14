@@ -1,7 +1,7 @@
-import { Edge, IE11OrLess } from "../BrowserInfo";
+import { Edge } from "../BrowserInfo";
 import { css, expando, getChild, getRect, index, lastChild } from "../utils";
 
-const CSSFloatProperty = Edge || IE11OrLess ? "cssFloat" : "float";
+const CSSFloatProperty = Edge ? "cssFloat" : "float";
 
 export const _globalDragOver = (/**Event*/ evt) => {
 	if (evt.dataTransfer) {
@@ -25,7 +25,7 @@ export const onMove = (
 		onMoveFn = sortable.options.onMove,
 		retVal;
 	// Support for new CustomEvent feature
-	if (window.CustomEvent && !IE11OrLess && !Edge) {
+	if (window.CustomEvent && !Edge) {
 		evt = new CustomEvent("move", {
 			bubbles: true,
 			cancelable: true,
@@ -209,10 +209,7 @@ export const _cancelNextTick = (id) => {
 
 export const checkCssPointerEventSupport = (documentExists) => {
 	if (!documentExists) return;
-	// false when <= IE11
-	if (IE11OrLess) {
-		return false;
-	}
+
 	let el = document.createElement("x");
 	el.style.cssText = "pointer-events:auto";
 	return el.style.pointerEvents === "auto";

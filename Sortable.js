@@ -26,11 +26,10 @@
   }
 
   function userAgent(pattern) {
-    if (typeof window !== 'undefined' && window.navigator) {
+    if (typeof window !== "undefined" && window.navigator) {
       return !! /*@__PURE__*/navigator.userAgent.match(pattern);
     }
   }
-  const IE11OrLess = userAgent(/(?:Trident.*rv[ :]?11\.|msie|iemobile|Windows Phone)/i);
   const Edge = userAgent(/Edge/i);
   const FireFox = userAgent(/firefox/i);
   const Safari = userAgent(/safari/i) && !userAgent(/chrome/i) && !userAgent(/android/i);
@@ -42,14 +41,14 @@
     passive: false
   };
   function on(el, event, fn) {
-    el.addEventListener(event, fn, !IE11OrLess && captureMode);
+    el.addEventListener(event, fn, captureMode);
   }
   function off(el, event, fn) {
-    el.removeEventListener(event, fn, !IE11OrLess && captureMode);
+    el.removeEventListener(event, fn, captureMode);
   }
   function matches( /**HTMLElement*/el, /**String*/selector) {
     if (!selector) return;
-    selector[0] === '>' && (selector = selector.substring(1));
+    selector[0] === ">" && (selector = selector.substring(1));
     if (el) {
       try {
         if (el.matches) {
@@ -72,7 +71,7 @@
     if (el) {
       ctx = ctx || document;
       do {
-        if (selector != null && (selector[0] === '>' ? el.parentNode === ctx && matches(el, selector) : matches(el, selector)) || includeCTX && el === ctx) {
+        if (selector != null && (selector[0] === ">" ? el.parentNode === ctx && matches(el, selector) : matches(el, selector)) || includeCTX && el === ctx) {
           return el;
         }
         if (el === ctx) break;
@@ -85,10 +84,10 @@
   function toggleClass(el, name, state) {
     if (el && name) {
       if (el.classList) {
-        el.classList[state ? 'add' : 'remove'](name);
+        el.classList[state ? "add" : "remove"](name);
       } else {
-        let className = (' ' + el.className + ' ').replace(R_SPACE, ' ').replace(' ' + name + ' ', ' ');
-        el.className = (className + (state ? ' ' + name : '')).replace(R_SPACE, ' ');
+        let className = (" " + el.className + " ").replace(R_SPACE, " ").replace(" " + name + " ", " ");
+        el.className = (className + (state ? " " + name : "")).replace(R_SPACE, " ");
       }
     }
   }
@@ -97,28 +96,28 @@
     if (style) {
       if (val === void 0) {
         if (document.defaultView && document.defaultView.getComputedStyle) {
-          val = document.defaultView.getComputedStyle(el, '');
+          val = document.defaultView.getComputedStyle(el, "");
         } else if (el.currentStyle) {
           val = el.currentStyle;
         }
         return prop === void 0 ? val : val[prop];
       } else {
-        if (!(prop in style) && prop.indexOf('webkit') === -1) {
-          prop = '-webkit-' + prop;
+        if (!(prop in style) && prop.indexOf("webkit") === -1) {
+          prop = "-webkit-" + prop;
         }
-        style[prop] = val + (typeof val === 'string' ? '' : 'px');
+        style[prop] = val + (typeof val === "string" ? "" : "px");
       }
     }
   }
   function matrix(el, selfOnly) {
-    let appliedTransforms = '';
-    if (typeof el === 'string') {
+    let appliedTransforms = "";
+    if (typeof el === "string") {
       appliedTransforms = el;
     } else {
       do {
-        let transform = css(el, 'transform');
-        if (transform && transform !== 'none') {
-          appliedTransforms = transform + ' ' + appliedTransforms;
+        let transform = css(el, "transform");
+        if (transform && transform !== "none") {
+          appliedTransforms = transform + " " + appliedTransforms;
         }
         /* jshint boss:true */
       } while (!selfOnly && (el = el.parentNode));
@@ -183,22 +182,19 @@
       container = container || el.parentNode;
 
       // solves #1123 (see: https://stackoverflow.com/a/37953806/6088312)
-      // Not needed on <= IE11
-      if (!IE11OrLess) {
-        do {
-          if (container && container.getBoundingClientRect && (css(container, 'transform') !== 'none' || relativeToNonStaticParent && css(container, 'position') !== 'static')) {
-            let containerRect = container.getBoundingClientRect();
+      do {
+        if (container && container.getBoundingClientRect && (css(container, "transform") !== "none" || relativeToNonStaticParent && css(container, "position") !== "static")) {
+          let containerRect = container.getBoundingClientRect();
 
-            // Set relative to edges of padding box of container
-            top -= containerRect.top + parseInt(css(container, 'border-top-width'));
-            left -= containerRect.left + parseInt(css(container, 'border-left-width'));
-            bottom = top + elRect.height;
-            right = left + elRect.width;
-            break;
-          }
-          /* jshint boss:true */
-        } while (container = container.parentNode);
-      }
+          // Set relative to edges of padding box of container
+          top -= containerRect.top + parseInt(css(container, "border-top-width"));
+          left -= containerRect.left + parseInt(css(container, "border-left-width"));
+          bottom = top + elRect.height;
+          right = left + elRect.width;
+          break;
+        }
+        /* jshint boss:true */
+      } while (container = container.parentNode);
     }
     if (undoScale && el !== window) {
       // Adjust for scale()
@@ -239,7 +235,7 @@
     while (parent) {
       let parentSideVal = getRect(parent)[parentSide],
         visible;
-      if (parentSide === 'top' || parentSide === 'left') {
+      if (parentSide === "top" || parentSide === "left") {
         visible = elSideVal >= parentSideVal;
       } else {
         visible = elSideVal <= parentSideVal;
@@ -264,7 +260,7 @@
       i = 0,
       children = el.children;
     while (i < children.length) {
-      if (children[i].style.display !== 'none' && children[i] !== Sortable.ghost && (includeDragEl || children[i] !== Sortable.dragged) && closest(children[i], options.draggable, el, false)) {
+      if (children[i].style.display !== "none" && children[i] !== Sortable.ghost && (includeDragEl || children[i] !== Sortable.dragged) && closest(children[i], options.draggable, el, false)) {
         if (currentChild === childNum) {
           return children[i];
         }
@@ -283,7 +279,7 @@
    */
   function lastChild(el, selector) {
     let last = el.lastElementChild;
-    while (last && (last === Sortable.ghost || css(last, 'display') === 'none' || selector && !matches(last, selector))) {
+    while (last && (last === Sortable.ghost || css(last, "display") === "none" || selector && !matches(last, selector))) {
       last = last.previousElementSibling;
     }
     return last || null;
@@ -304,7 +300,7 @@
 
     /* jshint boss:true */
     while (el = el.previousElementSibling) {
-      if (el.nodeName.toUpperCase() !== 'TEMPLATE' && el !== Sortable.clone && (!selector || matches(el, selector))) {
+      if (el.nodeName.toUpperCase() !== "TEMPLATE" && el !== Sortable.clone && (!selector || matches(el, selector))) {
         index++;
       }
     }
@@ -357,7 +353,7 @@
       // we don't need to get elem css if it isn't even overflowing in the first place (performance)
       if (elem.clientWidth < elem.scrollWidth || elem.clientHeight < elem.scrollHeight) {
         let elemCSS = css(elem);
-        if (elem.clientWidth < elem.scrollWidth && (elemCSS.overflowX == 'auto' || elemCSS.overflowX == 'scroll') || elem.clientHeight < elem.scrollHeight && (elemCSS.overflowY == 'auto' || elemCSS.overflowY == 'scroll')) {
+        if (elem.clientWidth < elem.scrollWidth && (elemCSS.overflowX == "auto" || elemCSS.overflowX == "scroll") || elem.clientHeight < elem.scrollHeight && (elemCSS.overflowY == "auto" || elemCSS.overflowY == "scroll")) {
           if (!elem.getBoundingClientRect || elem === document.body) return getWindowScrollingElement();
           if (gotSelf || includeSelf) return elem;
           gotSelf = true;
@@ -412,7 +408,7 @@
       return el.cloneNode(true);
     }
   }
-  const expando = 'Sortable' + new Date().getTime();
+  const expando = "Sortable" + new Date().getTime();
 
   function AnimationStateManager() {
     let animationStates = [],
@@ -552,7 +548,7 @@
     return Math.sqrt(Math.pow(fromRect.top - animatingRect.top, 2) + Math.pow(fromRect.left - animatingRect.left, 2)) / Math.sqrt(Math.pow(fromRect.top - toRect.top, 2) + Math.pow(fromRect.left - toRect.left, 2)) * options.animation;
   }
 
-  const CSSFloatProperty = Edge || IE11OrLess ? "cssFloat" : "float";
+  const CSSFloatProperty = Edge ? "cssFloat" : "float";
   const _globalDragOver = ( /**Event*/evt) => {
     if (evt.dataTransfer) {
       evt.dataTransfer.dropEffect = "move";
@@ -565,7 +561,7 @@
       onMoveFn = sortable.options.onMove,
       retVal;
     // Support for new CustomEvent feature
-    if (window.CustomEvent && !IE11OrLess && !Edge) {
+    if (window.CustomEvent && !Edge) {
       evt = new CustomEvent("move", {
         bubbles: true,
         cancelable: true
@@ -688,10 +684,6 @@
   };
   const checkCssPointerEventSupport = documentExists => {
     if (!documentExists) return;
-    // false when <= IE11
-    if (IE11OrLess) {
-      return false;
-    }
     let el = document.createElement("x");
     el.style.cssText = "pointer-events:auto";
     return el.style.pointerEvents === "auto";
@@ -1134,7 +1126,7 @@
         }
 
         // Delay is impossible for native DnD in Edge or IE
-        if (options.delay && (!options.delayOnTouchOnly || touch) && (!this.nativeDraggable || !(Edge || IE11OrLess))) {
+        if (options.delay && (!options.delayOnTouchOnly || touch) && (!this.nativeDraggable || !Edge)) {
           if (Sortable.eventCanceled) {
             _this._onDrop();
             return;

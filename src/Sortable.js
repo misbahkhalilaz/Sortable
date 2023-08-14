@@ -5,14 +5,7 @@
  * @license MIT
  */
 
-import {
-	IE11OrLess,
-	Edge,
-	FireFox,
-	Safari,
-	IOS,
-	ChromeForAndroid,
-} from "./BrowserInfo.js";
+import { Edge, FireFox, Safari, IOS, ChromeForAndroid } from "./BrowserInfo.js";
 
 import AnimationStateManager from "./Animation.js";
 
@@ -448,7 +441,7 @@ class Sortable {
 			if (
 				options.delay &&
 				(!options.delayOnTouchOnly || touch) &&
-				(!this.nativeDraggable || !(Edge || IE11OrLess))
+				(!this.nativeDraggable || !Edge)
 			) {
 				if (Sortable.eventCanceled) {
 					_this._onDrop();

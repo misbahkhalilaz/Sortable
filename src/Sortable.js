@@ -236,7 +236,7 @@ class Sortable {
 			this.sort(options.store.get(this) || []);
 
 		// Add animation state manager
-		Object.assign(this, AnimationStateManager());
+		Object.assign(this, new AnimationStateManager(this));
 	}
 
 	/**

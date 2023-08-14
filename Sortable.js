@@ -552,6 +552,7 @@
     return Math.sqrt(Math.pow(fromRect.top - animatingRect.top, 2) + Math.pow(fromRect.left - animatingRect.left, 2)) / Math.sqrt(Math.pow(fromRect.top - toRect.top, 2) + Math.pow(fromRect.left - toRect.left, 2)) * options.animation;
   }
 
+  const CSSFloatProperty = Edge || IE11OrLess ? "cssFloat" : "float";
   const _globalDragOver = ( /**Event*/evt) => {
     if (evt.dataTransfer) {
       evt.dataTransfer.dropEffect = "move";
@@ -685,50 +686,7 @@
   const _cancelNextTick = id => {
     return clearTimeout(id);
   };
-
-  let dragEl,
-    parentEl,
-    ghostEl,
-    rootEl,
-    nextEl,
-    lastDownEl,
-    cloneEl,
-    cloneHidden,
-    oldIndex,
-    newIndex,
-    oldDraggableIndex,
-    newDraggableIndex,
-    activeGroup,
-    putSortable,
-    awaitingDragStarted = false,
-    ignoreNextClick = false,
-    sortables = [],
-    tapEvt,
-    touchEvt,
-    lastDx,
-    lastDy,
-    tapDistanceLeft,
-    tapDistanceTop,
-    moved,
-    lastTarget,
-    lastDirection,
-    pastFirstInvertThresh = false,
-    isCircumstantialInvert = false,
-    targetMoveDistance,
-    // For positioning ghost absolutely
-    ghostRelativeParent,
-    ghostRelativeParentInitialScroll = [],
-    // (left, top)
-    _silent = false,
-    savedInputChecked = [];
-
-  /** @const */
-  const documentExists = typeof document !== "undefined";
-  const PositionGhostAbsolutely = IOS;
-  const CSSFloatProperty = Edge || IE11OrLess ? "cssFloat" : "float";
-  // This will not pass for IE9, because IE9 DnD only works on anchors
-  const supportDraggable = documentExists && !ChromeForAndroid && !IOS && "draggable" in document.createElement("div");
-  const supportCssPointerEvents = (() => {
+  const checkCssPointerEventSupport = documentExists => {
     if (!documentExists) return;
     // false when <= IE11
     if (IE11OrLess) {
@@ -737,7 +695,7 @@
     let el = document.createElement("x");
     el.style.cssText = "pointer-events:auto";
     return el.style.pointerEvents === "auto";
-  })();
+  };
   const _detectDirection = (el, options) => {
     let elCSS = css(el),
       elWidth = parseInt(elCSS.width) - parseInt(elCSS.paddingLeft) - parseInt(elCSS.paddingRight) - parseInt(elCSS.borderLeftWidth) - parseInt(elCSS.borderRightWidth),
@@ -775,7 +733,7 @@
    * @param  {Number} y      Y position
    * @return {HTMLElement}   Element of the first found nearest Sortable
    */
-  const _detectNearestEmptySortable = (x, y) => {
+  const _detectNearestEmptySortable = (x, y, sortables) => {
     let ret;
     sortables.some(sortable => {
       const threshold = sortable[expando].options.emptyInsertThreshold;
@@ -822,33 +780,20 @@
     group.revertClone = originalGroup.revertClone;
     options.group = group;
   };
-  const _hideGhostForTarget = () => {
-    if (!supportCssPointerEvents && ghostEl) {
+  const _hideGhostForTarget = (ghostEl, documentExists) => {
+    if (!checkCssPointerEventSupport(documentExists) && ghostEl) {
       css(ghostEl, "display", "none");
     }
   };
-  const _unhideGhostForTarget = () => {
-    if (!supportCssPointerEvents && ghostEl) {
+  const _unhideGhostForTarget = (ghostEl, documentExists) => {
+    if (!checkCssPointerEventSupport(documentExists) && ghostEl) {
       css(ghostEl, "display", "");
     }
   };
-
-  // #1184 fix - Prevent click event on fallback if dragged but item not changed position
-  if (documentExists && !ChromeForAndroid) {
-    document.addEventListener("click", function (evt) {
-      if (ignoreNextClick) {
-        evt.preventDefault();
-        evt.stopPropagation && evt.stopPropagation();
-        evt.stopImmediatePropagation && evt.stopImmediatePropagation();
-        ignoreNextClick = false;
-        return false;
-      }
-    }, true);
-  }
-  let nearestEmptyInsertDetectEvent = function (evt) {
+  const nearestEmptyInsertDetectEvent = (evt, dragEl, sortables) => {
     if (dragEl) {
       evt = evt.touches ? evt.touches[0] : evt;
-      let nearest = _detectNearestEmptySortable(evt.clientX, evt.clientY);
+      let nearest = _detectNearestEmptySortable(evt.clientX, evt.clientY, sortables);
       if (nearest) {
         // Create imitation event
         let event = {};
@@ -864,11 +809,75 @@
       }
     }
   };
-  let _checkOutsideTargetEl = function (evt) {
+  const _checkOutsideTargetEl = (evt, dragEl) => {
     if (dragEl) {
       dragEl.parentNode[expando]._isOutsideThisEl(evt.target);
     }
   };
+
+  let dragEl,
+    parentEl,
+    ghostEl,
+    rootEl,
+    nextEl,
+    lastDownEl,
+    cloneEl,
+    cloneHidden,
+    oldIndex,
+    newIndex,
+    oldDraggableIndex,
+    newDraggableIndex,
+    activeGroup,
+    putSortable,
+    awaitingDragStarted = false,
+    ignoreNextClick = false,
+    sortables = [],
+    tapEvt,
+    touchEvt,
+    lastDx,
+    lastDy,
+    tapDistanceLeft,
+    tapDistanceTop,
+    moved,
+    lastTarget,
+    lastDirection,
+    pastFirstInvertThresh = false,
+    isCircumstantialInvert = false,
+    targetMoveDistance,
+    // For positioning ghost absolutely
+    ghostRelativeParent,
+    ghostRelativeParentInitialScroll = [],
+    // (left, top)
+    _silent = false,
+    savedInputChecked = [];
+
+  /** @const */
+  const documentExists = typeof document !== "undefined";
+  const PositionGhostAbsolutely = IOS;
+  // This will not pass for IE9, because IE9 DnD only works on anchors
+  const supportDraggable = documentExists && !ChromeForAndroid && !IOS && "draggable" in document.createElement("div");
+
+  // #1184 fix - Prevent click event on fallback if dragged but item not changed position
+  if (documentExists && !ChromeForAndroid) {
+    document.addEventListener("click", function (evt) {
+      if (ignoreNextClick) {
+        evt.preventDefault();
+        evt.stopPropagation && evt.stopPropagation();
+        evt.stopImmediatePropagation && evt.stopImmediatePropagation();
+        ignoreNextClick = false;
+        return false;
+      }
+    }, true);
+  }
+
+  // Fixed #973:
+  if (documentExists) {
+    on(document, "touchmove", function (evt) {
+      if ((Sortable.active || awaitingDragStarted) && evt.cancelable) {
+        evt.preventDefault();
+      }
+    });
+  }
 
   /**
    * @class  Sortable
@@ -1110,9 +1119,10 @@
         options.ignore.split(",").forEach(function (criteria) {
           find(dragEl, criteria.trim(), _disableDraggable);
         });
-        on(ownerDocument, "dragover", nearestEmptyInsertDetectEvent);
-        on(ownerDocument, "mousemove", nearestEmptyInsertDetectEvent);
-        on(ownerDocument, "touchmove", nearestEmptyInsertDetectEvent);
+        const onCB = evt => nearestEmptyInsertDetectEvent(evt, dragEl, sortables);
+        on(ownerDocument, "dragover", onCB);
+        on(ownerDocument, "mousemove", onCB);
+        on(ownerDocument, "touchmove", onCB);
         on(ownerDocument, "mouseup", _this._onDrop.bind(_this));
         on(ownerDocument, "touchend", _this._onDrop.bind(_this));
         on(ownerDocument, "touchcancel", _this._onDrop.bind(_this));
@@ -1195,7 +1205,7 @@
       awaitingDragStarted = false;
       if (rootEl && dragEl) {
         if (this.nativeDraggable) {
-          on(document, "dragover", _checkOutsideTargetEl);
+          on(document, "dragover", evt => _checkOutsideTargetEl(evt, dragEl));
         }
         let options = this.options;
 
@@ -1212,7 +1222,7 @@
       if (touchEvt) {
         this._lastX = touchEvt.clientX;
         this._lastY = touchEvt.clientY;
-        _hideGhostForTarget();
+        _hideGhostForTarget(ghostEl, documentExists);
         let target = document.elementFromPoint(touchEvt.clientX, touchEvt.clientY);
         let parent = target;
         while (target && target.shadowRoot) {
@@ -1239,7 +1249,7 @@
           } while ( /* jshint boss:true */
           parent = parent.parentNode);
         }
-        _unhideGhostForTarget();
+        _unhideGhostForTarget(ghostEl);
       }
     }
     _onTouchMove( /**TouchEvent*/evt) {
@@ -1459,7 +1469,7 @@
           dragEl.parentNode[expando]._isOutsideThisEl(evt.target);
 
           // Do not detect for empty insert if already inserted
-          !insertion && nearestEmptyInsertDetectEvent(evt);
+          !insertion && nearestEmptyInsertDetectEvent(evt, dragEl, sortables);
         }
         !options.dragoverBubble && evt.stopPropagation && evt.stopPropagation();
         return completedFired = true;
@@ -1610,12 +1620,13 @@
       return false;
     }
     _offMoveEvents() {
+      const offCB = evt => nearestEmptyInsertDetectEvent(evt, dragEl, sortables);
       off(document, "mousemove", this._onTouchMove.bind(this));
       off(document, "touchmove", this._onTouchMove.bind(this));
       off(document, "pointermove", this._onTouchMove.bind(this));
-      off(document, "dragover", nearestEmptyInsertDetectEvent);
-      off(document, "mousemove", nearestEmptyInsertDetectEvent);
-      off(document, "touchmove", nearestEmptyInsertDetectEvent);
+      off(document, "dragover", offCB);
+      off(document, "mousemove", offCB);
+      off(document, "touchmove", offCB);
     }
     _offUpEvents() {
       let ownerDocument = this.el.ownerDocument;
@@ -1868,15 +1879,6 @@
         cloneHidden = false;
       }
     }
-  }
-
-  // Fixed #973:
-  if (documentExists) {
-    on(document, "touchmove", function (evt) {
-      if ((Sortable.active || awaitingDragStarted) && evt.cancelable) {
-        evt.preventDefault();
-      }
-    });
   }
 
   // Export utils
